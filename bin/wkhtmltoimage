@@ -1,16 +1,20 @@
 #!/usr/bin/env ruby
 
-arch = case RUBY_PLATFORM
-       when /64.*linux/
-         'amd64'
-       when /linux/
-         'i386'
-       when /64.*darwin/
+
+# Detect OS for binary selection
+require 'rbconfig'
+host_os = RbConfig::CONFIG['host_os']
+arch = if host_os =~ /darwin/
          'darwin-x64'
-       when /darwin/
-         'darwin-x86'
+       elsif host_os =~ /linux/
+         # Check for Ubuntu Jammy (22.04)
+         if File.exist?('/etc/os-release') && File.read('/etc/os-release').include?('jammy')
+           'jammy'
+         else
+           'rocky9'
+         end
        else
-         raise "Invalid platform. Must be running linux or Mac."
+         'rocky9'
        end
 
 args = $*.map { |x| x.include?(' ') ? "'" + x + "'" : x }
